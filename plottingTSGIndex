@@ -1,0 +1,49 @@
+from TSG_API import *
+
+from datetime import *
+import matplotlib.pyplot as plt
+from matplotlib.dates import DateFormatter
+formatter = DateFormatter('%Y-%m-%d %H:%M:%S')
+
+##### Your Sepcifications #####
+datapoints = 72 #how many points should be plotted?
+steps = 12 #1 = 5mins, 12 = 1 hour, 288 = 12*24 = 1 day
+#given example shows the last three days
+#Please note that API uses Servertime
+###############################
+
+def get_datetime(time):
+    s = time.split("T")
+    d = s[0].split("-")
+    t = s[1].split(".")[0].split(":")
+    time = datetime(int(d[0]), int(d[1]), int(d[2]), int(t[0]), int(t[1]), int(t[2]))
+    return time
+
+if steps == 1:
+    formatter = DateFormatter('%H:%M:%S')
+
+api = TSG_API("")
+tsgIndex = api.get_tsgIndex()
+
+times = []
+points = []
+for i in range(len(tsgIndex)-1, len(tsgIndex)-(datapoints*steps)-1, steps*(-1)):
+    times.append(get_datetime(tsgIndex[i]["time"]))
+    points.append(float(tsgIndex[i]["value"]))
+
+print times
+
+plt.plot(times, points, color='blue')
+plt.xlabel('Time')
+plt.ylabel('Index Points')
+
+title = 'Last %s Records Of TheShareGame Index'%(datapoints)
+if (steps*5*datapoints) > 60 and (steps*5*datapoints) < 60*2: title = 'Last Hour Of TheShareGame Index'
+if (steps*5*datapoints) > 60*2 and (steps*5*datapoints) < 60*24:title = 'Last %s Hours Of TheShareGame Index' % ((steps*5*datapoints)/(60))
+if (steps*5*datapoints) > 60*24 and (steps*5*datapoints) < 60*24*2:title = 'Last Day Of TheShareGame Index'
+if (steps*5*datapoints) > 60*24:title = 'Last %s Days Of TheShareGame Index' % ((steps*5*datapoints)/(60*24))
+
+plt.title(title)
+plt.gcf().axes[0].xaxis.set_major_formatter(formatter)
+plt.gcf().autofmt_xdate()
+plt.show()
